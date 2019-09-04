@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "416120246345",
+    "firebase_url": "https://cyanpigeon-b1f69.firebaseio.com",
+    "project_id": "cyanpigeon-b1f69",
+    "storage_bucket": "cyanpigeon-b1f69.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416120246345:android:7d11f3e8c0f4ad0b",
+        "android_client_info": {
+          "package_name": "com.sangramjit.projects.chatsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "416120246345-ao6gd4p0172u7i5iua9p06qq87tmg9gg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sangramjit.projects.chatsapp",
+            "certificate_hash": "1ab70a6031f1201acc17831d099456631bc00539"
+          }
+        },
+        {
+          "client_id": "416120246345-dlj9efdckq6iioj8dfa714j07u74q8nt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiwBnJmNgiTCQeYOdUKwH8wCSJEfKebKM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "416120246345-dlj9efdckq6iioj8dfa714j07u74q8nt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

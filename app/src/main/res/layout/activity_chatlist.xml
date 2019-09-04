@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".chatlistActivity">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChatList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="40dp"
+        android:clickable="true"
+        android:tint="@android:color/white"
+        app:backgroundTint="@color/colorSecondaryText"
+        app:srcCompat="@drawable/person" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
