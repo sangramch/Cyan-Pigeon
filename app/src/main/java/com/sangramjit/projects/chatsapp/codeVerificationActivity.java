@@ -1,5 +1,6 @@
 package com.sangramjit.projects.chatsapp;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -18,6 +19,9 @@ public class codeVerificationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_code_verification);
+
+        ActionBar actionbar=getSupportActionBar();
+        actionbar.setElevation(0);
 
         btnCodeConfirm = findViewById(R.id.btnCodeConfirm);
         etCodeInput = findViewById(R.id.etCodeInput);

@@ -2,6 +2,7 @@ package com.sangramjit.projects.chatsapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,15 +14,18 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -41,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SimpleTimeZone;
+import java.util.prefs.PreferenceChangeEvent;
 
 public class chatlistActivity extends AppCompatActivity implements chatListAdapter.clickFromAdapter{
 
@@ -53,10 +58,32 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
 
     Map<String, String> contactsmap= new HashMap<>();
 
+    TextView uTitle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatlist);
+
+        ActionBar actionbar=getSupportActionBar();
+        actionbar.setElevation(0);
+
+        uTitle=findViewById(R.id.uTitle);
+
+        Intent intent=getIntent();
+        String uname=intent.getStringExtra("uname");
+
+        if(uname==null){
+            SharedPreferences spref= PreferenceManager.getDefaultSharedPreferences(this);
+                if (spref.contains("username")) uTitle.setText(spref.getString("username", ""));
+        }
+        else {
+            SharedPreferences spref= PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor=spref.edit();
+            editor.putString("username",uname);
+            editor.apply();
+            uTitle.setText(uname);
+        }
 
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.WRITE_CONTACTS,Manifest.permission.READ_CONTACTS},1);
@@ -77,6 +104,8 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
 
         //Initialise the Recyclerview
         initializeRecyclerView();
+
+        loadList();
 
         getChats();
     }
@@ -107,11 +136,8 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
     //get all the chats of this user from the database
     private void getChats() {
         String myUID=FirebaseAuth.getInstance().getUid();
-
         //to get all the chats
         DatabaseReference chatsdata=FirebaseDatabase.getInstance().getReference().child("user").child(myUID).child("chat");
-
-        loadList(myUID);
 
         chatsdata.addChildEventListener(new ChildEventListener() {
             @Override
@@ -132,8 +158,6 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
                                 for(DataSnapshot childSnapshot:dataSnapshot.getChildren()){
                                     String message=childSnapshot.child("message").getValue().toString();
                                     String timestamp=childSnapshot.child("createAt").getValue().toString();
-                                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm a");
-                                    String format = simpleDateFormat.format(Long.parseLong(timestamp));
 
                                     DatabaseReference refForName=FirebaseDatabase.getInstance().getReference().child("user").child(uID).child("phone");
                                     refForName.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -145,7 +169,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
                                                 if(contactsmap.containsKey(Unumber)) {
                                                     Uname=contactsmap.get(Unumber);
                                                 }
-                                                chatItem chat = new chatItem(format, message, Uname, chatID);
+                                                chatItem chat = new chatItem(timestamp, message, Uname, chatID);
                                                 Log.d("cyanpigeonImp","name: "+Uname+" chatID: "+chatID);
 
                                                 boolean match=false;
@@ -153,6 +177,15 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
                                                 for(chatItem item:chatsarr){
                                                     if(item.getChatID().equals(chat.getChatID())){
                                                         match=true;
+                                                        if(!item.getTitle().equals(chat.getTitle())){
+                                                            item.setTitle(chat.getTitle());
+                                                        }
+                                                        if(!item.getTimeStamp().equals(chat.getTimeStamp())){
+                                                            Log.d("timestamp",item.getTimeStamp());
+                                                            item.setLastMessage(chat.getLastMessage());
+                                                            item.setTimeStamp(chat.getTimeStamp());
+                                                            chatListAdapter.notifyDataSetChanged();
+                                                        }
                                                         break;
                                                     }
                                                 }
@@ -160,9 +193,8 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
                                                 if(!match) {
                                                     chatsarr.add(chat);
                                                     chatListAdapter.notifyDataSetChanged();
-                                                    saveList();
                                                 }
-
+                                                saveList();
                                             }
                                         }
 
@@ -215,21 +247,20 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         Gson gson=new Gson();
         Log.d("loadlist","loaded: "+chatsarr.size());
         String serializedChatsArr=gson.toJson(chatsarr);
+        editor.clear();
+        editor.commit();
         editor.putString("chatlist",serializedChatsArr);
         editor.commit();
     }
 
-    private void loadList(String myUID) {
+    private void loadList() {
         SharedPreferences spref= getPreferences(MODE_PRIVATE);
-
         if(spref.contains("chatlist")){
             Gson gson=new Gson();
             String serializedChatsArr=spref.getString("chatlist","");
             Type type=new TypeToken<ArrayList<chatItem>>() {}.getType();
             ArrayList<chatItem> temparr=gson.fromJson(serializedChatsArr,type);
-            for(chatItem item:temparr){
-                chatsarr.add(item);
-            }
+            chatsarr.addAll(temparr);
             Log.d("loadlist","loaded: "+temparr.size());
             chatListAdapter.notifyDataSetChanged();
         }
@@ -334,10 +365,19 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         int id = item.getItemId();
         if(id==R.id.mitmLogout){
             FirebaseAuth.getInstance().signOut();
+
             SharedPreferences spref=getPreferences(MODE_PRIVATE);
+            SharedPreferences appPref=getApplicationContext().getSharedPreferences("userobejct",MODE_PRIVATE);
+
+            SharedPreferences.Editor appeditor=appPref.edit();
             SharedPreferences.Editor editor=spref.edit();
+
+            appeditor.clear();
+            appeditor.commit();
+
             editor.clear();
             editor.commit();
+
             Intent loginscreen = new Intent(getApplicationContext(), loginActivity.class);
             startActivity(loginscreen);
             finish();
@@ -357,12 +397,20 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
 
     @Override
     public void handleClick(chatItem chatitem) {
-        //Intent intent = new Intent(getApplicationContext(),chatActivity.class);
         Log.d("adapterclick","clicked");
 
         Intent intent=new Intent(getApplicationContext(),chatActivity.class);
         intent.putExtra("chatitem",chatitem);
-        startActivity(intent);
-        Toast.makeText(getApplicationContext(),chatitem.getTitle(),Toast.LENGTH_SHORT).show();
+        startActivityForResult(intent,1);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==1){
+            if(resultCode==RESULT_OK){
+                getChats();
+            }
+        }
     }
 }

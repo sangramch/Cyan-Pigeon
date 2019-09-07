@@ -3,4 +3,5 @@
     <string name="phone_num_ask">Enter your Phone Number</string>
     <string name="get_verification_code">Get Verification Code</string>
     <string name="display_picture">Display Picture</string>
+    <string name="type_a_text">Type a Text</string>
 </resources>

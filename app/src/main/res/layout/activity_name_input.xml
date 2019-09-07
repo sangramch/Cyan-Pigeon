@@ -16,26 +16,24 @@
         android:layout_weight="1"
         android:gravity="center"
         android:textColor="@color/colorPrimaryText"
-        android:text="Enter Verification Code:"
+        android:text="Enter Your Name:"
         android:textSize="20sp" />
 
     <EditText
-        android:id="@+id/etCodeInput"
-        android:layout_width="wrap_content"
+        android:id="@+id/etNameInput"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="120dp"
+        android:layout_marginLeft="40dp"
         android:layout_marginTop="50dp"
-        android:layout_marginRight="120dp"
+        android:layout_marginRight="40dp"
         android:layout_weight="1"
-        android:ems="10"
+        android:layout_gravity="center"
         android:gravity="center"
-        android:hint="######"
-        android:inputType="number"
-        android:maxLength="6"
-        android:textSize="30sp" />
+        android:hint="Enter Your Name"
+        android:textSize="20sp" />
 
     <Button
-        android:id="@+id/btnCodeConfirm"
+        android:id="@+id/btnNameConfirm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -44,6 +42,6 @@
         android:background="@color/colorPrimaryDark"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:text="Confirm Code"
+        android:text="Done"
         android:textColor="#ffffff" />
 </LinearLayout>

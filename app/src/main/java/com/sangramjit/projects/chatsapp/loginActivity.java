@@ -2,9 +2,11 @@ package com.sangramjit.projects.chatsapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -25,7 +27,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +41,8 @@ public class loginActivity extends AppCompatActivity{
     Button btnSubmitNumber;
     FirebaseAuth firebaseAuthInstance=FirebaseAuth.getInstance();
     String savedVerificationId;
+    FirebaseUser user=null;
+    String username=null;
 
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallback = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
         @Override
@@ -69,6 +76,62 @@ public class loginActivity extends AppCompatActivity{
                 signInWithPhoneAuthCredential(credential);
             }
         }
+
+        if(requestCode==0){
+            if(resultCode==RESULT_OK){
+                if(user!=null){
+                    DatabaseReference userDatabaseRef = FirebaseDatabase.getInstance().getReference().child("user");
+                    Map<String , Object> userMap = new HashMap<>();
+                    userMap.put("phone",user.getPhoneNumber());
+                    String name=data.getStringExtra("title").trim();
+                    if(name!=null){
+                        if(!name.equals("")){
+                            userMap.put("name",name);
+                            username=name;
+                        }
+                        else{
+                            userMap.put("name",user.getPhoneNumber());
+                            username=user.getPhoneNumber();
+                        }
+                    }
+                    else{
+                        userMap.put("name",user.getPhoneNumber());
+                        username=user.getPhoneNumber();
+                    }
+                    userDatabaseRef.child(user.getUid()).setValue(userMap);
+                    Log.d("CyanPigeon","Login Successful");
+                    LoginUser();
+
+                }
+            }
+        }
+
+        if(requestCode==2){
+            if(resultCode==RESULT_OK){
+                if(user!=null){
+                    DatabaseReference userDatabaseRef = FirebaseDatabase.getInstance().getReference().child("user");
+                    String name=data.getStringExtra("title").trim();
+                    String userMap;
+                    if(name!=null){
+                        if(!name.equals("")){
+                            userMap=name;
+                            username=name;
+                        }
+                        else{
+                            userMap=user.getPhoneNumber();
+                            username=user.getPhoneNumber();
+                        }
+                    }
+                    else{
+                        userMap=user.getPhoneNumber();
+                        username=user.getPhoneNumber();
+                    }
+                    userDatabaseRef.child(user.getUid()).child("name").setValue(userMap);
+                    Log.d("CyanPigeon","Login Successful");
+                    LoginUser();
+                }
+            }
+        }
     }
 
     @Override
@@ -76,6 +139,9 @@ public class loginActivity extends AppCompatActivity{
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        ActionBar actionbar=getSupportActionBar();
+        actionbar.setElevation(0);
 
         etNumber=findViewById(R.id.etNumber);
         btnSubmitNumber=findViewById(R.id.btnSubmitNumber);
@@ -119,19 +185,22 @@ public class loginActivity extends AppCompatActivity{
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
 
-                    final FirebaseUser user = firebaseAuthInstance.getCurrentUser();
+                    user = firebaseAuthInstance.getCurrentUser();
 
                     if(user!=null){
-                        final DatabaseReference userDatabaseRef = FirebaseDatabase.getInstance().getReference().child("user").child(user.getUid());
+                        DatabaseReference userDatabaseRef = FirebaseDatabase.getInstance().getReference().child("user").child(user.getUid());
                         userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if(!dataSnapshot.exists()){
-                                    Map<String , Object> userMap = new HashMap<>();
-                                    userMap.put("phone",user.getPhoneNumber());
-                                    userMap.put("name",user.getPhoneNumber());
-                                    userDatabaseRef.updateChildren(userMap);
 
+                                    Intent intent = new Intent(getApplicationContext(),name_input_activity.class);
+                                    startActivityForResult(intent,0);
+
+                                }
+                                else{
+                                    Intent intent = new Intent(getApplicationContext(),name_input_activity.class);
+                                    startActivityForResult(intent,2);
                                 }
                             }
 
@@ -141,9 +210,6 @@ public class loginActivity extends AppCompatActivity{
                             }
                         });
                     }
-
-                    Log.d("CyanPigeon","Login Successful");
-                    LoginUser();
                 }
                 else{
                     Log.w("CyanPigeon","Login Failed");
@@ -157,9 +223,11 @@ public class loginActivity extends AppCompatActivity{
     }
 
     void LoginUser(){
-        FirebaseUser user = firebaseAuthInstance.getCurrentUser();
+
+        user = firebaseAuthInstance.getCurrentUser();
         if(user!=null){
             Intent showChatActivity = new Intent(getApplicationContext(),com.sangramjit.projects.chatsapp.chatlistActivity.class);
+            showChatActivity.putExtra("uname",username);
             startActivity(showChatActivity);
             finish();
             return;

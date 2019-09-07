@@ -1,41 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".chatActivity">
+    tools:context=".chatActivity"
+    android:background="@color/white">
 
-    <GridLayout
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvmessages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/gridLayout"
+        android:layout_gravity="bottom"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp" />
+
+    <RelativeLayout
+        android:id="@+id/gridLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
-        android:columnCount="7">
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="5dp">
 
         <EditText
             android:id="@+id/etMessage"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="6"
+            android:layout_alignParentStart="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="15dp"
             android:layout_marginBottom="10dp"
+            android:layout_toStartOf="@+id/btnSend"
             android:background="@drawable/edittextbackground"
-            android:hint="Type a Text"
-            android:paddingLeft="15dp"
+            android:hint="@string/type_a_text"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
             android:paddingTop="10dp"
-            android:paddingBottom="10dp" />
+            android:paddingBottom="10dp"
+            android:maxHeight="150dp"
+            android:layout_centerVertical="true"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/btnSend"
-            android:layout_height="50dp"
             android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
             android:layout_marginBottom="10dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:adjustViewBounds="true"
             android:background="@drawable/send_button"
-            android:text="Send" />
-    </GridLayout>
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/send"
+            android:tint="@android:color/white"
+            app:backgroundTint="@color/colorSecondaryText"
+            android:layout_centerVertical="true"/>
 
-</LinearLayout>
+    </RelativeLayout>
+
+</RelativeLayout>

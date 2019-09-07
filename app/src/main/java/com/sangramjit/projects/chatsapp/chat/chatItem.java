@@ -30,4 +30,16 @@ public class chatItem implements Serializable {
     public String getTimeStamp() {
         return TimeStamp;
     }
+
+    public void setLastMessage(String lastMessage) {
+        LastMessage = lastMessage;
+    }
+
+    public void setTimeStamp(String timeStamp) {
+        TimeStamp = timeStamp;
+    }
+
+    public void setTitle(String title) {
+        Title = title;
+    }
 }

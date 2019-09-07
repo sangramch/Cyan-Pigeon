@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sangramjit.projects.chatsapp.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class chatListAdapter extends RecyclerView.Adapter<chatListAdapter.viewHolder>{
@@ -68,7 +69,11 @@ public class chatListAdapter extends RecyclerView.Adapter<chatListAdapter.viewHo
         holder.itemView.setTag(chats.get(position));
         holder.tvTitle.setText(chats.get(position).getTitle());
         holder.tvLastMessage.setText(chats.get(position).getLastMessage());
-        holder.tvMessageTime.setText(chats.get(position).getTimeStamp());
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm a");
+        String format = simpleDateFormat.format(Long.parseLong(chats.get(position).getTimeStamp()));
+
+        holder.tvMessageTime.setText(format);
     }
 
     @Override

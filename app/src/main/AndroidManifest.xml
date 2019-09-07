@@ -11,14 +11,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".name_input_activity"></activity>
         <activity android:name=".chatlistActivity" />
         <activity android:name=".codeVerificationActivity" />
         <activity android:name=".chatActivity" />
         <activity
             android:name=".userlistActivity"
-            android:label="Add Person"
-            android:theme="@style/AppTheme.ActionBar.Transparent" />
+            android:label="Add Person" />
         <activity android:name=".loginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,8 +26,8 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
 </manifest>

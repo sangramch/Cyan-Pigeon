@@ -46,6 +46,7 @@ public class userlistActivity extends AppCompatActivity implements userlistAdapt
         super.onCreate(savedInstanceState);
 
         ActionBar actionbar=getSupportActionBar();
+        actionbar.setElevation(0);
         actionbar.setDisplayHomeAsUpEnabled(true);
 
         setContentView(R.layout.activity_userlist);
