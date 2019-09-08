@@ -1,6 +1,7 @@
 package com.sangramjit.projects.chatsapp.user;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,6 +80,7 @@ public class userlistAdapter extends RecyclerView.Adapter<userlistAdapter.viewHo
                 FirebaseDatabase.getInstance().getReference().child("chat").child(key).child("0").child("createAt").setValue(sendtime);
                 FirebaseDatabase.getInstance().getReference().child("chat").child(key).child("0").child("message").setValue("You are now Connected");
                 FirebaseDatabase.getInstance().getReference().child("chat").child(key).child("0").child("senderID").setValue("0");
+
 
                 activity.onItemClicked();
             }

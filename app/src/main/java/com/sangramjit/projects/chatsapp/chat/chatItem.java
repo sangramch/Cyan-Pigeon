@@ -1,8 +1,11 @@
 package com.sangramjit.projects.chatsapp.chat;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
 
-public class chatItem implements Serializable {
+public class chatItem implements Parcelable {
     private String ChatID;
     private String LastMessage;
     private String Title;
@@ -13,6 +16,13 @@ public class chatItem implements Serializable {
         this.LastMessage=LastMessage;
         this.Title=Title;
         this.TimeStamp=timeStamp;
+    }
+
+    protected chatItem(Parcel parcel){
+        this.ChatID=parcel.readString();
+        this.LastMessage=parcel.readString();
+        this.Title=parcel.readString();
+        this.TimeStamp=parcel.readString();
     }
 
     public String getChatID() {
@@ -41,5 +51,34 @@ public class chatItem implements Serializable {
 
     public void setTitle(String title) {
         Title = title;
+    }
+
+    @Override
+    public int describeContents() {
+        return this.hashCode();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.ChatID);
+        parcel.writeString(this.LastMessage);
+        parcel.writeString(this.Title);
+        parcel.writeString(this.TimeStamp);
+    }
+
+    public static final Creator<chatItem> CREATOR = new Creator<chatItem>() {
+        @Override
+        public chatItem createFromParcel(Parcel parcel) {
+            return new chatItem(parcel);
+        }
+
+        @Override
+        public chatItem[] newArray(int i) {
+            return new chatItem[i];
+        }
+    };
+
+    public static Creator<chatItem> getCREATOR(){
+        return CREATOR;
     }
 }

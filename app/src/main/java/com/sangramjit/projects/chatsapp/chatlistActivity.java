@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -56,7 +57,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
 
     ArrayList<chatItem> chatsarr=new ArrayList<>();
 
-    Map<String, String> contactsmap= new HashMap<>();
+    HashMap<String, String> contactsmap= new HashMap<>();
 
     TextView uTitle;
 
@@ -105,9 +106,33 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         //Initialise the Recyclerview
         initializeRecyclerView();
 
-        loadList();
+        loadSavedChatList();
 
-        getChats();
+        updateChats();
+
+        if(!getServiceRunningState(com.sangramjit.projects.chatsapp.utils.messageListenerService.class)) {
+            Thread notificationServiceThread = new Thread() {
+                public void run() {
+                    Intent notificatonIntent = new Intent(getApplicationContext(), com.sangramjit.projects.chatsapp.utils.messageListenerService.class);
+                    notificatonIntent.putExtra("contactsmap", contactsmap);
+                    startService(notificatonIntent);
+                }
+            };
+
+            notificationServiceThread.start();
+        }
+
+        updateChats();
+    }
+
+    private boolean getServiceRunningState(Class<?> serviceClass){
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo service:manager.getRunningServices(Integer.MAX_VALUE)){
+            if(serviceClass.getName().equals(service.service.getClassName())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private void buildContactsMap() {
@@ -132,12 +157,11 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         }
     }
 
-
     //get all the chats of this user from the database
-    private void getChats() {
-        String myUID=FirebaseAuth.getInstance().getUid();
+    private void updateChats() {
+        String myUID = FirebaseAuth.getInstance().getUid();
         //to get all the chats
-        DatabaseReference chatsdata=FirebaseDatabase.getInstance().getReference().child("user").child(myUID).child("chat");
+        DatabaseReference chatsdata = FirebaseDatabase.getInstance().getReference().child("user").child(myUID).child("chat");
 
         chatsdata.addChildEventListener(new ChildEventListener() {
             @Override
@@ -146,55 +170,59 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
                     String chatID = dataSnapshot.getKey();
                     String uID = dataSnapshot.getValue().toString();
 
-                    DatabaseReference lastmsg=FirebaseDatabase.getInstance().getReference().child("chat").child(chatID);
-                    Query query=lastmsg.orderByChild("createAt");
+                    DatabaseReference lastmsg = FirebaseDatabase.getInstance().getReference().child("chat").child(chatID);
+                    Query query = lastmsg.orderByChild("createAt");
 
-                    query.limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener(){
+                    query.limitToLast(1).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            if(dataSnapshot.exists()) {
-                                Log.d("cyanpigeon","count: "+dataSnapshot.getChildrenCount());
+                            if (dataSnapshot.exists()) {
+                                Log.d("cyanpigeon", "count: " + dataSnapshot.getChildrenCount());
 
-                                for(DataSnapshot childSnapshot:dataSnapshot.getChildren()){
-                                    String message=childSnapshot.child("message").getValue().toString();
-                                    String timestamp=childSnapshot.child("createAt").getValue().toString();
+                                for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                                    String message = childSnapshot.child("message").getValue().toString();
+                                    String timestamp = childSnapshot.child("createAt").getValue().toString();
 
-                                    DatabaseReference refForName=FirebaseDatabase.getInstance().getReference().child("user").child(uID).child("phone");
-                                    refForName.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    DatabaseReference refForName = FirebaseDatabase.getInstance().getReference().child("user").child(uID).child("phone");
+                                    refForName.addValueEventListener(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                            if(dataSnapshot.exists()){
-                                                String Unumber= dataSnapshot.getValue().toString();
-                                                String Uname=Unumber;;
-                                                if(contactsmap.containsKey(Unumber)) {
-                                                    Uname=contactsmap.get(Unumber);
+                                            if (dataSnapshot.exists()) {
+                                                String Unumber = dataSnapshot.getValue().toString();
+                                                String Uname = Unumber;
+                                                ;
+                                                if (contactsmap.containsKey(Unumber)) {
+                                                    Uname = contactsmap.get(Unumber);
                                                 }
                                                 chatItem chat = new chatItem(timestamp, message, Uname, chatID);
-                                                Log.d("cyanpigeonImp","name: "+Uname+" chatID: "+chatID);
+                                                Log.d("cyanpigeonImp", "name: " + Uname + " chatID: " + chatID);
 
-                                                boolean match=false;
+                                                boolean match = false;
 
-                                                for(chatItem item:chatsarr){
-                                                    if(item.getChatID().equals(chat.getChatID())){
-                                                        match=true;
-                                                        if(!item.getTitle().equals(chat.getTitle())){
+                                                for (chatItem item : chatsarr) {
+                                                    if (item.getChatID().equals(chat.getChatID())) {
+                                                        match = true;
+                                                        if (!item.getTitle().equals(chat.getTitle())) {
                                                             item.setTitle(chat.getTitle());
                                                         }
-                                                        if(!item.getTimeStamp().equals(chat.getTimeStamp())){
-                                                            Log.d("timestamp",item.getTimeStamp());
+                                                        if (!item.getTimeStamp().equals(chat.getTimeStamp())) {
+                                                            Log.d("timestamp", item.getTimeStamp());
                                                             item.setLastMessage(chat.getLastMessage());
                                                             item.setTimeStamp(chat.getTimeStamp());
+                                                            chatItem x = item;
+                                                            chatsarr.remove(item);
+                                                            chatsarr.add(0, x);
                                                             chatListAdapter.notifyDataSetChanged();
                                                         }
                                                         break;
                                                     }
                                                 }
 
-                                                if(!match) {
-                                                    chatsarr.add(chat);
+                                                if (!match) {
+                                                    chatsarr.add(0, chat);
                                                     chatListAdapter.notifyDataSetChanged();
                                                 }
-                                                saveList();
+                                                saveChatListToPrefs();
                                             }
                                         }
 
@@ -240,7 +268,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
 
     }
 
-    private void saveList() {
+    private void saveChatListToPrefs() {
         Log.d("loadlist","in onsave");
         SharedPreferences spref=getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor=spref.edit();
@@ -253,7 +281,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         editor.commit();
     }
 
-    private void loadList() {
+    private void loadSavedChatList() {
         SharedPreferences spref= getPreferences(MODE_PRIVATE);
         if(spref.contains("chatlist")){
             Gson gson=new Gson();
@@ -409,7 +437,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==1){
             if(resultCode==RESULT_OK){
-                getChats();
+                //updateChats();
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.sangramjit.projects.chatsapp.message;
 
-public class messageItem {
+import java.io.Serializable;
+
+public class messageItem implements Serializable {
     private String message,time,senderid;
 
     public messageItem(String message,String time,String senderid){

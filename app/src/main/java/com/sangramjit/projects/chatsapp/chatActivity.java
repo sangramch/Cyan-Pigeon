@@ -9,8 +9,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -24,11 +27,21 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.sangramjit.projects.chatsapp.chat.chatItem;
 import com.sangramjit.projects.chatsapp.message.messageAdapter;
 import com.sangramjit.projects.chatsapp.message.messageItem;
 import com.sangramjit.projects.chatsapp.user.userItem;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,19 +58,38 @@ public class chatActivity extends AppCompatActivity {
     LinearLayoutManager lmanager;
     ArrayList<messageItem> messageslist = new ArrayList<>();
 
+    String lastRecievedTime=null;
+
+    boolean fired=false;
+    boolean loadall=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_chat);
 
-
         ActionBar actionbar = getSupportActionBar();
         actionbar.setElevation(0);
         actionbar.setDisplayHomeAsUpEnabled(true);
 
         Intent intent=getIntent();
-        this.item=(chatItem) intent.getSerializableExtra("chatitem");
+        this.item=(chatItem) intent.getParcelableExtra("chatitem");
+
+        File file = new File(getFilesDir(),item.getChatID());
+        if(file.exists()){
+            loadFromFile(file);
+            SharedPreferences spref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+            if(spref.contains(item.getChatID()))
+                lastRecievedTime = spref.getString(item.getChatID(),"");
+            else{
+                lastRecievedTime = messageslist.get(messageslist.size()-1).getTime();
+                SharedPreferences.Editor editor = spref.edit();
+                editor.putString(item.getChatID(),lastRecievedTime);
+                editor.commit();
+            }
+        }
 
         actionbar.setTitle(item.getTitle());
 
@@ -99,34 +131,88 @@ public class chatActivity extends AppCompatActivity {
     private void loadMessage(){
 
         DatabaseReference messageload=FirebaseDatabase.getInstance().getReference().child("chat").child(item.getChatID());
-        Query query=messageload.orderByChild("createAt");
+        Query query;
+        if(lastRecievedTime!=null)
+            query=messageload.orderByChild("createAt").startAt(lastRecievedTime);
+        else
+            query=messageload.orderByChild("createAt");
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(dataSnapshot.exists()){
-                    Object message=dataSnapshot.child("message").getValue();
-                    Object time=dataSnapshot.child("createAt").getValue();
-                    Object senderid=dataSnapshot.child("senderID").getValue();
-                    if(message!=null && time!=null && senderid!=null) {
-                        String user;
+                if(lastRecievedTime==null){
+                    if (dataSnapshot.exists()) {
+                        Object message = dataSnapshot.child("message").getValue();
+                        Object time = dataSnapshot.child("createAt").getValue();
+                        Object senderid = dataSnapshot.child("senderID").getValue();
+                        if (message != null && time != null && senderid != null) {
+                            String user;
 
-                        if(senderid.toString().equals(FirebaseAuth.getInstance().getUid())){
-                            user="You";
-                        }
-                        else if(senderid.toString().equals("0")){
-                            user="";
-                        }
-                        else{
-                            user=item.getTitle();
-                        }
+                            if (senderid.toString().equals(FirebaseAuth.getInstance().getUid())) {
+                                user = "You";
+                            } else if (senderid.toString().equals("0")) {
+                                user = "";
+                            } else {
+                                user = item.getTitle();
+                            }
 
-                        messageslist.add(new messageItem(message.toString(),time.toString(),user));
-                        Log.d("msgaddchat","Message Added"+message.toString());
-                        Log.d("chatwindow","onchildadded: "+messageslist.size());
+                            messageslist.add(new messageItem(message.toString(), time.toString(), user));
+
+                            SharedPreferences spref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                            SharedPreferences.Editor editor = spref.edit();
+                            editor.putString(item.getChatID(), time.toString());
+                            editor.commit();
+
+                            lastRecievedTime=time.toString();
+
+                            saveToFile();
+
+                            Log.d("msgaddchat", "Message Added" + message.toString());
+                            Log.d("chatwindow", "onchildadded: " + messageslist.size());
+                        }
+                        setResult(RESULT_OK, null);
+                        adapter.notifyDataSetChanged();
                     }
-                    setResult(RESULT_OK,null);
-                    adapter.notifyDataSetChanged();
                 }
+
+                if(fired) {
+                    if (dataSnapshot.exists()) {
+                        Object message = dataSnapshot.child("message").getValue();
+                        Object time = dataSnapshot.child("createAt").getValue();
+                        Object senderid = dataSnapshot.child("senderID").getValue();
+                        if (message != null && time != null && senderid != null) {
+                            String user;
+
+                            if (senderid.toString().equals(FirebaseAuth.getInstance().getUid())) {
+                                user = "You";
+                            } else if (senderid.toString().equals("0")) {
+                                user = "";
+                            } else {
+                                user = item.getTitle();
+                            }
+
+                            messageslist.add(new messageItem(message.toString(), time.toString(), user));
+
+                            SharedPreferences spref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                            SharedPreferences.Editor editor = spref.edit();
+                            editor.putString(item.getChatID(), time.toString());
+                            editor.commit();
+
+                            lastRecievedTime=time.toString();
+
+                            saveToFile();
+
+                            Log.d("msgaddchat", "Message Added" + message.toString());
+                            Log.d("chatwindow", "onchildadded: " + messageslist.size());
+                        }
+                        setResult(RESULT_OK, null);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+
+                else{
+                    fired=true;
+                }
+
             }
 
             @Override
@@ -164,8 +250,69 @@ public class chatActivity extends AppCompatActivity {
         messageref.child(key).setValue(sender);
     }
 
+    void saveToFile(){
+        File file = new File(getFilesDir(),item.getChatID());
+        try{
+            BufferedWriter bufferedWriter=new BufferedWriter(new FileWriter(file,false));
+            Gson gson=new Gson();
+            Type type= new TypeToken<ArrayList<messageItem>>(){}.getType();
+
+            String json=gson.toJson(messageslist,type);
+            bufferedWriter.write(json);
+            bufferedWriter.close();
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void loadFromFile(File file){
+        try{
+            BufferedReader bufferedReader=new BufferedReader(new FileReader(file));
+            String json;
+            while((json=bufferedReader.readLine())!=null) {
+                Gson gson=new Gson();
+                Type type=new TypeToken<ArrayList<messageItem>>(){}.getType();
+
+                messageslist=gson.fromJson(json,type);
+            }
+
+        }
+
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.chat, menu);
+        return true;
+    }
+
+
     public boolean onOptionsItemSelected(MenuItem Item){
         if (Item.getItemId()==android.R.id.home){
+            finish();
+            return true;
+        }
+        else if(Item.getItemId()==R.id.mitmRefreshAllMsgs){
+            SharedPreferences spref=PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+            SharedPreferences.Editor editor=spref.edit();
+            editor.remove(item.getChatID());
+
+            File file = new File(getFilesDir(),item.getChatID());
+            boolean deleted = file.delete();
+
+            Log.d("file deletion in chat","File Deletion status: "+deleted);
+
             finish();
             return true;
         }
