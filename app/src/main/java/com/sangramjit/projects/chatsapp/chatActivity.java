@@ -171,6 +171,7 @@ public class chatActivity extends AppCompatActivity {
                         }
                         setResult(RESULT_OK, null);
                         adapter.notifyDataSetChanged();
+                        rvMessages.smoothScrollToPosition(messageslist.size()-1);
                     }
                 }
 
@@ -206,6 +207,7 @@ public class chatActivity extends AppCompatActivity {
                         }
                         setResult(RESULT_OK, null);
                         adapter.notifyDataSetChanged();
+                        rvMessages.smoothScrollToPosition(messageslist.size()-1);
                     }
                 }
 

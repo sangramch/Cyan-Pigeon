@@ -70,7 +70,7 @@ public class chatListAdapter extends RecyclerView.Adapter<chatListAdapter.viewHo
         holder.tvTitle.setText(chats.get(position).getTitle());
         holder.tvLastMessage.setText(chats.get(position).getLastMessage());
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm a");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm a, dd MMM");
         String format = simpleDateFormat.format(Long.parseLong(chats.get(position).getTimeStamp()));
 
         holder.tvMessageTime.setText(format);

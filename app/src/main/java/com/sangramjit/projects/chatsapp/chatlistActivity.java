@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,11 +21,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -41,12 +38,8 @@ import com.sangramjit.projects.chatsapp.chat.chatListAdapter;
 import com.sangramjit.projects.chatsapp.utils.getCountryCode;
 
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.SimpleTimeZone;
-import java.util.prefs.PreferenceChangeEvent;
 
 public class chatlistActivity extends AppCompatActivity implements chatListAdapter.clickFromAdapter{
 
@@ -96,7 +89,7 @@ public class chatlistActivity extends AppCompatActivity implements chatListAdapt
         toContactsList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent gotoContactsList=new Intent(getApplicationContext(), userlistActivity.class);
+                Intent gotoContactsList=new Intent(getBaseContext(), userlistActivity.class);
                 startActivity(gotoContactsList);
             }
         });

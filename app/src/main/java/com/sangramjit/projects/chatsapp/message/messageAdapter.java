@@ -50,7 +50,7 @@ public class messageAdapter extends RecyclerView.Adapter<messageAdapter.viewHold
     @Override
     public void onBindViewHolder(@NonNull viewHolder holder, int position) {
 
-        SimpleDateFormat dateFormat=new SimpleDateFormat("hh:mm a");
+        SimpleDateFormat dateFormat=new SimpleDateFormat("dd MMM, hh:mm a");
 
 
         holder.tvMessage.setText(messageItems.get(position).getMessage());

@@ -1,6 +1,5 @@
 package com.sangramjit.projects.chatsapp.utils;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,11 +21,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.sangramjit.projects.chatsapp.R;
-import com.sangramjit.projects.chatsapp.chat.chatItem;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class messageListenerService extends Service {
 
@@ -55,7 +51,6 @@ public class messageListenerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
 
         contactslist=(HashMap) intent.getSerializableExtra("contactsmap");
 
